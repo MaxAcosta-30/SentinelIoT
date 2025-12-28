@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Sentinel.IoT.Hub/Sentinel.IoT.Hub.csproj" />
+  <Project Path="Sentinel.IoT.Sensor/Sentinel.IoT.Sensor.csproj" />
+</Solution>

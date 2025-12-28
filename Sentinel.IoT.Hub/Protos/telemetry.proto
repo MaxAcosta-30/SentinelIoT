@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+// Define el namespace para que C# sepa dónde poner el código generado
+option csharp_namespace = "Sentinel.IoT.Hub";
+
+package telemetry;
+
+service Telemetry {
+  // El sensor envía métricas y recibe una confirmación (Ack)
+  rpc SendMetrics (MetricData) returns (MetricAck);
+}
+
+message MetricData {
+  string device_id = 1; 
+  double temperature = 2;
+  double pressure = 3;
+  int64 timestamp_utc = 4; // Usamos int64 para Unix Timestamp
+}
+
+message MetricAck {
+  bool success = 1;
+  string message = 2;
+}
