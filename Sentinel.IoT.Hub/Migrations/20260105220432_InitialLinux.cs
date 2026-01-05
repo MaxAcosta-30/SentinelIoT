@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Sentinel.IoT.Hub.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialLinux : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,13 +15,13 @@ namespace Sentinel.IoT.Hub.Migrations
                 name: "TelemetryLogs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DeviceId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    VerifiedIdentity = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Temperature = table.Column<double>(type: "float", nullable: false),
-                    Pressure = table.Column<double>(type: "float", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DeviceId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    VerifiedIdentity = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Temperature = table.Column<double>(type: "REAL", nullable: false),
+                    Pressure = table.Column<double>(type: "REAL", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
