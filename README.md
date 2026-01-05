@@ -1,194 +1,274 @@
-# Sentinel IoT Hub
+# Sentinel IoT (Edición Linux/Zero Trust)
 
-A high-performance IoT telemetry system built with gRPC and .NET 10, designed for secure and efficient data collection from remote sensors.
+Sistema de telemetría IoT seguro con arquitectura Zero Trust, construido con .NET 10, gRPC y autenticación mTLS (Mutual TLS) mediante certificados X.509.
 
-## Overview
+## 📋 Descripción
 
-Sentinel IoT Hub is a client-server solution that enables real-time telemetry data collection from IoT devices. The system consists of two main components:
+Sentinel IoT es una solución cliente-servidor diseñada para la recolección segura de datos de telemetría desde dispositivos IoT remotos. El sistema implementa autenticación mutua mediante certificados X.509, garantizando que solo dispositivos autorizados puedan comunicarse con el Hub y viceversa.
 
-- **Hub**: A gRPC server that receives and stores telemetry data in SQL Server
-- **Sensor**: A simulated IoT client that sends sensor readings (temperature, pressure) to the Hub
+### Características Principales
 
-## Architecture
+- **Autenticación mTLS**: Comunicación segura mediante certificados X.509
+- **gRPC sobre HTTP/2**: Alto rendimiento y eficiencia en la transmisión de datos
+- **SQLite**: Base de datos ligera y portable para almacenamiento local
+- **Arquitectura Zero Trust**: Verificación de identidad en cada conexión
+- **API REST**: Endpoint para consultar datos de telemetría almacenados
+
+## 🏗️ Arquitectura
 
 ```
-┌─────────────────┐         gRPC (HTTP/2)        ┌─────────────────┐
-│                 │ ────────────────────────────> │                 │
-│  IoT Sensor     │                               │  IoT Hub        │
-│  (Client)       │ <──────────────────────────── │  (Server)       │
-│                 │         MetricAck             │                 │
-└─────────────────┘                               └─────────────────┘
-                                                          │
-                                                          │ Entity Framework
-                                                          │ Core
-                                                          ▼
-                                                  ┌─────────────────┐
-                                                  │  SQL Server     │
-                                                  │  (LocalDB)      │
-                                                  └─────────────────┘
+┌─────────────────┐         gRPC (HTTP/2 + mTLS)        ┌─────────────────┐
+│                 │ ────────────────────────────────────> │                 │
+│  IoT Sensor     │                                       │  IoT Hub        │
+│  (Cliente)      │ <─────────────────────────────────── │  (Servidor)     │
+│                 │         MetricAck                    │                 │
+└─────────────────┘                                       └─────────────────┘
+                                                                    │
+                                                                    │ Entity Framework
+                                                                    │ Core (SQLite)
+                                                                    ▼
+                                                          ┌─────────────────┐
+                                                          │  SQLite        │
+                                                          │  (sentinel_    │
+                                                          │   linux.db)    │
+                                                          └─────────────────┘
 ```
 
-### Components
+### Componentes
 
-- **Sentinel.IoT.Hub**: gRPC server application that exposes telemetry endpoints and persists data to SQL Server
-- **Sentinel.IoT.Sensor**: Simulated IoT device that periodically sends sensor readings to the Hub
+- **Sentinel.IoT.Hub**: Servidor gRPC que recibe y almacena datos de telemetría en SQLite
+- **Sentinel.IoT.Sensor**: Cliente simulado de dispositivo IoT que envía lecturas de sensores al Hub
 
-## Technology Stack
+## 🛠️ Stack Tecnológico
 
-- **.NET 10.0**: Latest .NET framework
-- **gRPC**: High-performance RPC framework for telemetry communication
-- **Entity Framework Core**: ORM for database operations
-- **SQL Server LocalDB**: Local database for development
-- **Protocol Buffers**: Efficient serialization format for gRPC messages
+- **.NET 10.0**: Framework .NET más reciente
+- **gRPC**: Framework RPC de alto rendimiento para comunicación de telemetría
+- **Entity Framework Core**: ORM para operaciones de base de datos
+- **SQLite**: Base de datos embebida y ligera
+- **Protocol Buffers**: Formato de serialización eficiente para mensajes gRPC
+- **OpenSSL**: Herramienta para generar certificados X.509
 
-## Prerequisites
+## 📦 Pre-requisitos
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
-- [SQL Server LocalDB](https://docs.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb) (included with Visual Studio)
-- Visual Studio 2022 or VS Code (recommended)
+Antes de comenzar, asegúrate de tener instalado:
 
-## Getting Started
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o superior
+- [OpenSSL](https://www.openssl.org/) (generalmente incluido en distribuciones Linux)
+- [dotnet-ef](https://docs.microsoft.com/ef/core/cli/dotnet) (herramienta de Entity Framework Core)
 
-### 1. Clone the Repository
+### Instalar dotnet-ef
+
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+## 🚀 Instalación
+
+### 1. Clonar el Repositorio
 
 ```bash
 git clone https://github.com/MaxAcosta-30/SentinelIoT.git
 cd SentinelIoT
 ```
 
-### 2. Database Setup
+### 2. Generar Certificados X.509
 
-The application uses SQL Server LocalDB by default. Ensure LocalDB is installed and running.
+El sistema requiere certificados para la autenticación mTLS. Debes generar los certificados antes de ejecutar la aplicación.
 
-The connection string is configured in `Sentinel.IoT.Hub/appsettings.json`:
+#### Opción A: Usar el Script de Configuración
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SentinelIoTDb;Trusted_Connection=True;MultipleActiveResultSets=true"
-  }
-}
+Si existe un script `setup_certs.sh` en el repositorio:
+
+```bash
+chmod +x setup_certs.sh
+./setup_certs.sh
 ```
 
-### 3. Run Database Migrations
+Este script generará:
+- `MyRootCA.crt`: Certificado de Autoridad Certificadora (Root CA)
+- `Server.pfx`: Certificado del servidor (Hub)
+- `Sensor01.pfx`: Certificado del cliente (Sensor)
 
-Navigate to the Hub project directory and apply migrations:
+#### Opción B: Generar Manualmente con OpenSSL
+
+Si necesitas generar los certificados manualmente, consulta la documentación de OpenSSL para crear una PKI (Public Key Infrastructure) con:
+- Una Root CA
+- Un certificado de servidor firmado por la CA
+- Un certificado de cliente firmado por la CA
+
+**Importante**: Los certificados deben colocarse en las siguientes ubicaciones:
+
+- **Hub**: `Sentinel.IoT.Hub/Certs/`
+  - `MyRootCA.crt`
+  - `Server.pfx` (contraseña: `sentinel`)
+
+- **Sensor**: `Sentinel.IoT.Sensor/Certs/`
+  - `MyRootCA.crt`
+  - `Sensor01.pfx` (contraseña: `sentinel`)
+
+### 3. Configurar la Base de Datos
+
+La aplicación utiliza SQLite, que se crea automáticamente. Sin embargo, debes ejecutar las migraciones de Entity Framework Core:
 
 ```bash
 cd Sentinel.IoT.Hub
 dotnet ef database update
 ```
 
-If you need to create a new migration:
+Si necesitas crear una nueva migración:
 
 ```bash
-dotnet ef migrations add <MigrationName>
+dotnet ef migrations add <NombreMigracion>
 ```
 
-### 4. Start the Hub (Server)
+Esto creará el archivo `sentinel_linux.db` en el directorio del proyecto Hub.
 
-In the `Sentinel.IoT.Hub` directory:
+## ▶️ Ejecución
+
+### 1. Iniciar el Hub (Servidor)
+
+En el directorio `Sentinel.IoT.Hub`:
 
 ```bash
 dotnet run
 ```
 
-The Hub will start listening on `http://localhost:5001` for gRPC connections.
+El Hub iniciará y escuchará conexiones gRPC en `https://localhost:5001` con autenticación mTLS habilitada.
 
-### 5. Start the Sensor (Client)
+Verás mensajes como:
+```
+[INFO] Sentinel IoT Hub - Iniciando servidor gRPC con mTLS...
+[INFO] Certificados cargados correctamente
+[INFO] Servidor iniciado en https://localhost:5001
+[INFO] Endpoint REST disponible en: https://localhost:5001/api/telemetry
+```
 
-In a new terminal, navigate to the `Sentinel.IoT.Sensor` directory:
+### 2. Iniciar el Sensor (Cliente)
+
+En una nueva terminal, navega al directorio `Sentinel.IoT.Sensor`:
 
 ```bash
 cd Sentinel.IoT.Sensor
 dotnet run
 ```
 
-The sensor will start sending telemetry data every 2 seconds to the Hub.
+El sensor comenzará a enviar datos de telemetría cada 2 segundos al Hub. Verás mensajes como:
 
-## Project Structure
+```
+[INFO] Sentinel IoT Sensor - Iniciando cliente gRPC con mTLS...
+[INFO] Certificados cargados correctamente
+[INFO] Conectado al Hub. Iniciando envío de telemetría...
+[INFO] Enviando telemetría: 305°C... OK - Data stored securely.
+```
+
+## 📊 Visualización de Datos
+
+### Endpoint REST
+
+Puedes consultar los datos de telemetría almacenados mediante el endpoint REST:
+
+```bash
+curl -k https://localhost:5001/api/telemetry
+```
+
+O simplemente abre tu navegador y visita:
+
+```
+https://localhost:5001/api/telemetry
+```
+
+**Nota**: El navegador mostrará una advertencia de certificado autofirmado. Esto es normal en desarrollo. Acepta la excepción para continuar.
+
+El endpoint devuelve los últimos 20 registros de telemetría ordenados por timestamp (más recientes primero) en formato JSON.
+
+## 📁 Estructura del Proyecto
 
 ```
 SentinelIoT/
-├── Sentinel.IoT.Hub/          # gRPC Server
-│   ├── Data/                  # Entity Framework models and DbContext
+├── Sentinel.IoT.Hub/              # Servidor gRPC
+│   ├── Data/                      # Modelos de Entity Framework y DbContext
 │   │   ├── AppDbContext.cs
 │   │   └── TelemetryLog.cs
-│   ├── Services/             # gRPC service implementations
+│   ├── Services/                  # Implementaciones de servicios gRPC
 │   │   └── TelemetryService.cs
-│   ├── Protos/               # Protocol Buffer definitions
+│   ├── Protos/                    # Definiciones de Protocol Buffers
 │   │   └── telemetry.proto
-│   ├── Migrations/           # EF Core database migrations
+│   ├── Migrations/                # Migraciones de EF Core
+│   ├── Certs/                     # Certificados del servidor (NO COMMITEAR)
+│   │   ├── MyRootCA.crt
+│   │   └── Server.pfx
+│   ├── appsettings.json
 │   └── Program.cs
-├── Sentinel.IoT.Sensor/       # gRPC Client (Simulated IoT Device)
+├── Sentinel.IoT.Sensor/           # Cliente gRPC (Dispositivo IoT Simulado)
+│   ├── Certs/                     # Certificados del cliente (NO COMMITEAR)
+│   │   ├── MyRootCA.crt
+│   │   └── Sensor01.pfx
 │   └── Program.cs
 └── README.md
 ```
 
-## Configuration
+## 🔒 Seguridad
 
-### Hub Configuration
+### Autenticación mTLS
 
-The Hub can be configured via `appsettings.json`:
+El sistema implementa autenticación mutua mediante certificados X.509:
 
-- **Connection String**: Database connection settings
-- **Logging**: Log levels for different components
-- **Kestrel**: Server port and protocol configuration (currently HTTP/2 on port 5001)
+1. **Validación del Cliente por el Servidor**: El Hub verifica que el certificado del cliente esté firmado por la Root CA confiable.
+2. **Validación del Servidor por el Cliente**: El Sensor verifica que el certificado del servidor esté firmado por la misma Root CA.
+3. **Verificación de Thumbprint**: Se valida que el certificado raíz de la cadena coincida exactamente con la Root CA configurada, previniendo ataques de suplantación.
 
-### Security Notes
+### Almacenamiento de Identidad Verificada
 
-⚠️ **Current Status**: The application is configured to use **HTTP (insecure)** for development purposes only.
+Cada registro de telemetría almacena la identidad verificada extraída del certificado del cliente (`VerifiedIdentity`), permitiendo auditoría completa de qué dispositivos enviaron datos y cuándo.
 
-**Future Implementation**: Mutual TLS (mTLS) will be implemented for production security, including:
-- Server certificate configuration
-- Client certificate validation
-- Certificate-based device authentication
+### ⚠️ Advertencias de Seguridad
 
-See `TODO` comments in the codebase for planned security enhancements.
+- **Certificados Autofirmados**: Los certificados generados para desarrollo son autofirmados. En producción, utiliza certificados emitidos por una CA confiable.
+- **Almacenamiento de Certificados**: Nunca commitees certificados (`.pfx`, `.crt`, `.key`) al repositorio. El `.gitignore` está configurado para excluirlos.
+- **Contraseñas de Certificados**: En producción, utiliza contraseñas seguras y almacénalas de forma segura (por ejemplo, en Azure Key Vault o variables de entorno).
 
-## Development
+## 🛠️ Desarrollo
 
-### Building the Solution
+### Compilar la Solución
 
 ```bash
 dotnet build
 ```
 
-### Running Tests
+### Ejecutar Tests
 
-(Add test project information when available)
+(Agregar información de proyectos de prueba cuando estén disponibles)
 
-### Code Style
+### Estilo de Código
 
-- Follow C# coding conventions
-- Use XML documentation comments for public APIs
-- Maintain clean, professional logging (avoid debug-only console output)
+- Seguir las convenciones de codificación de C#
+- Usar comentarios de documentación XML para APIs públicas
+- Mantener logs limpios y profesionales (evitar salidas de consola solo para depuración)
 
-## Contributing
+## 🤝 Contribuir
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+¡Las contribuciones son bienvenidas! Por favor, siéntete libre de enviar un Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork el repositorio
+2. Crea tu rama de funcionalidad (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-## License
+## 📄 Licencia
 
-This project is open source. (Specify license when available)
+Este proyecto es de código abierto. (Especificar licencia cuando esté disponible)
 
-## Author
+## 👤 Autor
 
 **MaxAcosta-30**
 
 - GitHub: [@MaxAcosta-30](https://github.com/MaxAcosta-30)
 
-## Acknowledgments
+## 🙏 Agradecimientos
 
-Built with modern .NET technologies for high-performance IoT telemetry collection.
+Construido con tecnologías .NET modernas para recolección de telemetría IoT de alto rendimiento y segura.
 
 ---
 
-**Note**: This is an MVP (Minimum Viable Product) version. Future enhancements include production-grade security, monitoring, and scalability features.
-
+**Nota**: Esta es la versión Release Candidate v1.0. Las mejoras futuras incluyen características de seguridad de nivel producción, monitoreo y escalabilidad.

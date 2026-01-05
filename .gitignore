@@ -208,6 +208,7 @@ FodyWeavers.xsd
 ## CRITICAL: Certificate files - NEVER commit certificates to the repository
 **/Certs/
 Certs/
+CertsV2/
 *.pfx
 *.p12
 *.crt
@@ -218,6 +219,15 @@ Certs/
 *.jks
 *.keystore
 *.truststore
+*.csr
+*.srl
+
+## SQLite database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 
 # OS files
 .DS_Store
