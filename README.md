@@ -1,8 +1,10 @@
 # Sentinel IoT (Edición Linux/Zero Trust)
 
+<p align="center"><img src="docs/portada.svg" alt="SentinelIoT: telemetría con gRPC y autenticación mutua mTLS" width="100%"></p>
+
 Sistema de telemetría IoT seguro con arquitectura Zero Trust, construido con .NET 10, gRPC y autenticación mTLS (Mutual TLS) mediante certificados X.509.
 
-## 📋 Descripción
+## Descripción
 
 Sentinel IoT es una solución cliente-servidor diseñada para la recolección segura de datos de telemetría desde dispositivos IoT remotos. El sistema implementa autenticación mutua mediante certificados X.509, garantizando que solo dispositivos autorizados puedan comunicarse con el Hub y viceversa.
 
@@ -14,7 +16,7 @@ Sentinel IoT es una solución cliente-servidor diseñada para la recolección se
 - **Arquitectura Zero Trust**: Verificación de identidad en cada conexión
 - **API REST**: Endpoint para consultar datos de telemetría almacenados
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 ┌─────────────────┐         gRPC (HTTP/2 + mTLS)        ┌─────────────────┐
@@ -39,7 +41,7 @@ Sentinel IoT es una solución cliente-servidor diseñada para la recolección se
 - **Sentinel.IoT.Hub**: Servidor gRPC que recibe y almacena datos de telemetría en SQLite
 - **Sentinel.IoT.Sensor**: Cliente simulado de dispositivo IoT que envía lecturas de sensores al Hub
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **.NET 10.0**: Framework .NET más reciente
 - **gRPC**: Framework RPC de alto rendimiento para comunicación de telemetría
@@ -48,7 +50,7 @@ Sentinel IoT es una solución cliente-servidor diseñada para la recolección se
 - **Protocol Buffers**: Formato de serialización eficiente para mensajes gRPC
 - **OpenSSL**: Herramienta para generar certificados X.509
 
-## 📦 Pre-requisitos
+## Pre-requisitos
 
 Antes de comenzar, asegúrate de tener instalado:
 
@@ -62,7 +64,7 @@ Antes de comenzar, asegúrate de tener instalado:
 dotnet tool install --global dotnet-ef
 ```
 
-## 🚀 Instalación
+## Instalación
 
 ### 1. Clonar el Repositorio
 
@@ -123,7 +125,7 @@ dotnet ef migrations add <NombreMigracion>
 
 Esto creará el archivo `sentinel_linux.db` en el directorio del proyecto Hub.
 
-## ▶️ Ejecución
+## ▶Ejecución
 
 ### 1. Iniciar el Hub (Servidor)
 
@@ -161,7 +163,7 @@ El sensor comenzará a enviar datos de telemetría cada 2 segundos al Hub. Verá
 [INFO] Enviando telemetría: 305°C... OK - Data stored securely.
 ```
 
-## 📊 Visualización de Datos
+## Visualización de Datos
 
 ### Endpoint REST
 
@@ -181,7 +183,7 @@ https://localhost:5001/api/telemetry
 
 El endpoint devuelve los últimos 20 registros de telemetría ordenados por timestamp (más recientes primero) en formato JSON.
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 SentinelIoT/
@@ -207,7 +209,7 @@ SentinelIoT/
 └── README.md
 ```
 
-## 🔒 Seguridad
+## Seguridad
 
 ### Autenticación mTLS
 
@@ -221,13 +223,13 @@ El sistema implementa autenticación mutua mediante certificados X.509:
 
 Cada registro de telemetría almacena la identidad verificada extraída del certificado del cliente (`VerifiedIdentity`), permitiendo auditoría completa de qué dispositivos enviaron datos y cuándo.
 
-### ⚠️ Advertencias de Seguridad
+### Advertencias de Seguridad
 
 - **Certificados Autofirmados**: Los certificados generados para desarrollo son autofirmados. En producción, utiliza certificados emitidos por una CA confiable.
 - **Almacenamiento de Certificados**: Nunca commitees certificados (`.pfx`, `.crt`, `.key`) al repositorio. El `.gitignore` está configurado para excluirlos.
 - **Contraseñas de Certificados**: En producción, utiliza contraseñas seguras y almacénalas de forma segura (por ejemplo, en Azure Key Vault o variables de entorno).
 
-## 🛠️ Desarrollo
+## Desarrollo
 
 ### Compilar la Solución
 
@@ -245,7 +247,7 @@ dotnet build
 - Usar comentarios de documentación XML para APIs públicas
 - Mantener logs limpios y profesionales (evitar salidas de consola solo para depuración)
 
-## 🤝 Contribuir
+## Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor, siéntete libre de enviar un Pull Request.
 
@@ -255,17 +257,17 @@ dotnet build
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto es de código abierto. (Especificar licencia cuando esté disponible)
 
-## 👤 Autor
+## Autor
 
 **MaxAcosta-30**
 
 - GitHub: [@MaxAcosta-30](https://github.com/MaxAcosta-30)
 
-## 🙏 Agradecimientos
+## Agradecimientos
 
 Construido con tecnologías .NET modernas para recolección de telemetría IoT de alto rendimiento y segura.
 
